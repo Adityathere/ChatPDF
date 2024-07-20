@@ -1,5 +1,5 @@
 <div align="center">
-      <img src="https://i.postimg.cc/2jTG56P9/logo-1.png" alt="Logo"> 
+      <img src="https://i.postimg.cc/WpMM8P8k/logo-100by100.png" alt="Logo"> 
       <h1>ChatPDF</h1>
   
 *Read this in other languages: [English](README.md), [简体中文](README.zh-cn.md)*
