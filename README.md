@@ -1,5 +1,5 @@
 <div align="center">
-      <img src="https://i.postimg.cc/WpMM8P8k/logo-100by100.png" alt="Logo"> 
+      <img src="assets/logo.png" alt="Logo"> 
       <h1>ChatPDF</h1>
   
 *Read this in other languages: [English](README.md), [简体中文](README.zh-cn.md)*
@@ -37,7 +37,7 @@
 
 
   ## Architecture
-  <img src="https://i.postimg.cc/pLjfqYxs/Frame-2.png" alt="Architecture">
+  <img src="assets/Architecture.png">
 
 
   ## Features
