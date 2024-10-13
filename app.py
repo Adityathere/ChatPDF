@@ -37,29 +37,34 @@ def get_vector_store(text_chunks):
     vector_store.save_local("faiss_index")
     return vector_store
 
-def get_conversational_chain():
+def get_conversational_chain(model_name):
     prompt_template = """
-    Answer the questions based on the provided context only.
-    Please provide the most accurate response based on the question, You are an expert in financial analysis. Extract and present detailed financial information from the provided context. 
-    Ensure the accuracy and clarity of the information. When extracting numerical data, include the unit or currency prefix (e.g., dollars, rupees). 
-    Additionally, provide any relevant extra information on the topic to give better context to the user. 
-    If the answer is not available in the context, state, "Answer is not available in the context." Do not provide incorrect information.
-    Always mention the page number from which you extracted the information.
+    Extract and present comprehensive insights from the provided context in the PDF, ensuring accuracy and clarity. Your response must address the following:
+
+    1. **Insight Accuracy**: Provide detailed and accurate insights based only on the provided context, refraining from any assumptions.
+    2. **Contextual Relevance**: Ensure the response is closely tied to the context, offering any additional or supplementary information that could enhance the user's understanding of the topic.
+    3. **Numerical Data Representation**: If the information includes numerical data, always mention the relevant units or currency (e.g., dollars, rupees, percentages, etc.). Specify quantities in their exact form, ensuring no data is overlooked.
+    4. **Specificity in Data**: Where applicable, break down data into categories or subcomponents (e.g., financial breakdowns by department, year, or region, etc.), and provide comparisons or trends if present in the context. 
+    5. **Extra Insights**: If possible, identify any noteworthy patterns, anomalies, or areas for deeper exploration based on the provided data. Highlight key takeaways or summarizations to help the user grasp the significance of the data.
+    6. **Page References**: Always mention the page number(s) from which you extracted the information to allow for easy reference.
+    7. **Unavailable Information**: If the requested insight is not available in the provided context, explicitly state, "Answer is not available in the context." Do not speculate or provide vague information.
+    8. **Clarity & Detail**: Use clear, concise language to avoid confusion. If there are technical terms, provide brief definitions or explanations if needed to ensure clarity.
+
     <context>
     {context}
     <context>
     Questions: {input}
     """
-    llm = ChatGroq(groq_api_key=groq_api_key, model_name="llama3-70b-8192")
+    llm = ChatGroq(groq_api_key=groq_api_key, model_name=model_name)
     prompt = ChatPromptTemplate.from_template(prompt_template)
     chain = create_stuff_documents_chain(llm, prompt)
     return chain
 
-def user_input(user_question):
+def user_input(user_question,model_name):
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     vector_store = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
     retriever = vector_store.as_retriever()
-    chain = get_conversational_chain()
+    chain = get_conversational_chain(model_name)
     retrieval_chain = create_retrieval_chain(retriever, chain)
     response = retrieval_chain.invoke({'input': user_question})
     return response['answer'], response['context']
@@ -77,40 +82,60 @@ def generate_pdf(chat_history):
         pdf.multi_cell(0, 10, f"{msg_type} ({avatar}): {content}")
     return pdf
 
+
+
+
 def main():
     st.set_page_config(page_title="Chat with PDF", 
                        page_icon="https://i.postimg.cc/RZzRwFCw/tab-icon.png", 
                        layout="wide", 
                        initial_sidebar_state="expanded",
                        menu_items={'About': "# This is a header. This is an *extremely* cool app!"})
-   
+
     logo_url = "https://i.postimg.cc/yY3dnD9S/logo.png"  
     col1, col2 = st.columns([1, 17])
     with col1:
         st.image(logo_url, width=55) 
     with col2:
         st.header("ChatPDF")
-
+    
+    st.markdown("""##### Here are some suggestions for you:
+    ▶️ Summarize the document.
+    ▶️ List keywords and Identify key terms.
+    ▶️ What is the primary goal or objective of this document? """, unsafe_allow_html=True)   
+    
     if "history" not in st.session_state:
         st.session_state.history = []
+    if "last_question" not in st.session_state:
+        st.session_state.last_question = ""
     if "show_confirmation" not in st.session_state:
         st.session_state.show_confirmation = False
     if "reset_confirmed" not in st.session_state:
         st.session_state.reset_confirmed = False
 
-    for msg in st.session_state.history:
-        st.chat_message(msg["type"], avatar=msg["avatar"]).write(msg["content"])
-    
-    if user_question := st.chat_input("Ask a Question from the PDF Files"):
-        st.chat_message("human", avatar='https://i.postimg.cc/261JMMfm/user-3.png').write(user_question)
-        answer, context = user_input(user_question)
-        st.chat_message("ai", avatar='https://i.postimg.cc/fLSW0H9V/chat-16273634.png').write(answer)
-        st.session_state.history.append({"type": "human", "content": user_question, "avatar": 'https://i.postimg.cc/261JMMfm/user-3.png'})
-        st.session_state.history.append({"type": "ai", "content": answer, "avatar": 'https://i.postimg.cc/fLSW0H9V/chat-16273634.png'})
+    # Model options for user selection
+    model_options = {
+        
+        "Gemma2-9B": "gemma2-9b-it",
+        "Llama3-70B": "llama3-70b-8192",
+        "Llama 3.1 70B": "llama-3.1-70b-versatile",
+        # "Llama 3.2 11B Vision": "llama-3.2-11b-vision-preview",
+        # "Llama 3.2 90B ": "llama-3.2-90b-vision-preview",
+        "Mixtral-8x7B": "mixtral-8x7b-32768",
+        "Whisper-Large-v3": "whisper-large-v3",
 
+    }
     
     with st.sidebar:
         st.title("Menu")
+        
+        # Add model selection in the sidebar
+        selected_model = st.selectbox(
+            "Select LLM Model", options=list(model_options.keys())
+        )
+        selected_model_name = model_options[selected_model]
+        st.write(f"Selected model: {selected_model_name}")
+        
         pdf_docs = st.file_uploader("Upload your PDF Files and Click on the Submit & Process Button", accept_multiple_files=True)
         if st.button("Submit & Process"):
             if pdf_docs:
@@ -151,9 +176,41 @@ def main():
             st.success("Chat history has been reset")
             st.session_state.reset_confirmed = False 
         st.markdown("<p style=' margin-top: 200px;'>Powered by Llama 3</p>", unsafe_allow_html=True)
+
+    # Use the selected model for the conversation
+    for msg in st.session_state.history:
+        st.chat_message(msg["type"], avatar=msg["avatar"]).write(msg["content"])
+    
+    if user_question := st.chat_input("Ask a Question from the PDF Files"):
+        st.chat_message("human", avatar='https://i.postimg.cc/261JMMfm/user-3.png').write(user_question)
+        answer, context = user_input(user_question, selected_model_name)
+        st.chat_message("ai", avatar='https://i.postimg.cc/fLSW0H9V/chat-16273634.png').write(answer)
+        
+        # Append conversation to history
+        st.session_state.history.append({"type": "human", "content": user_question, "avatar": 'https://i.postimg.cc/261JMMfm/user-3.png'})
+        st.session_state.history.append({"type": "ai", "content": answer, "avatar": 'https://i.postimg.cc/fLSW0H9V/chat-16273634.png'})
+        
+        # Store the last question for regenerating
+        st.session_state.last_question = user_question
+
+    # Regenerate button to redo the response for the last question
+    if st.session_state.last_question:
+        if st.button("Regenerate"):
+            # Display the last question again
+            st.chat_message("human", avatar='https://i.postimg.cc/261JMMfm/user-3.png').write(st.session_state.last_question)
+            
+            # Generate new response for the same question
+            answer, context = user_input(st.session_state.last_question, selected_model_name)
+            
+            # Display regenerated response
+            st.chat_message("ai", avatar='https://i.postimg.cc/fLSW0H9V/chat-16273634.png').write(answer)
+            
+            # Add regenerated response to history
+            st.session_state.history.append({"type": "ai", "content": answer, "avatar": 'https://i.postimg.cc/fLSW0H9V/chat-16273634.png'})
+
+
 if __name__ == "__main__":
     main()
-
 
 
 
