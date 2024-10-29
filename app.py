@@ -137,7 +137,7 @@ def main():
         st.write(f"Selected model: {selected_model_name}")
         
         pdf_docs = st.file_uploader("Upload your PDF Files and Click on the Submit & Process Button", accept_multiple_files=True)
-        if st.button("Submit & Process"):
+        if st.button("Submit & Process", icon=":material/forward:",use_container_width=True):
             if pdf_docs:
                 with st.spinner("Processing..."):
                     raw_text_with_pages = get_pdf_text(pdf_docs)
@@ -152,10 +152,11 @@ def main():
                 label="Download Chat History",
                 data=pdf_output,
                 file_name="chat_history.pdf",
+                icon=":material/download:",
                 mime="application/pdf"
             )
 
-        if st.button("Reset Chat"):
+        if st.button("Reset Chat", icon=":material/refresh:",use_container_width=True):
             st.session_state.show_confirmation = True
 
         if st.session_state.show_confirmation:
@@ -175,7 +176,7 @@ def main():
         if st.session_state.reset_confirmed:
             st.success("Chat history has been reset")
             st.session_state.reset_confirmed = False 
-        st.markdown("<p style=' margin-top: 200px;'>Powered by Llama 3</p>", unsafe_allow_html=True)
+        st.markdown("<p style=' margin-top: 200px;'>Powered by Groq</p>", unsafe_allow_html=True)
 
     # Use the selected model for the conversation
     for msg in st.session_state.history:
