@@ -122,7 +122,6 @@ def main():
         # "Llama 3.2 11B Vision": "llama-3.2-11b-vision-preview",
         # "Llama 3.2 90B ": "llama-3.2-90b-vision-preview",
         "Mixtral-8x7B": "mixtral-8x7b-32768",
-        "Whisper-Large-v3": "whisper-large-v3",
 
     }
     
