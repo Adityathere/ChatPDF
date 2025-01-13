@@ -11,6 +11,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 from fpdf import FPDF
+from PIL import Image
 import time
 
 load_dotenv()
@@ -86,18 +87,22 @@ def generate_pdf(chat_history):
 
 
 def main():
-    st.set_page_config(page_title="Chat with PDF", 
+    st.set_page_config(page_title="ChatPDF", 
                        page_icon="https://i.postimg.cc/RZzRwFCw/tab-icon.png", 
                        layout="wide", 
                        initial_sidebar_state="expanded",
                        menu_items={'About': "# This is a header. This is an *extremely* cool app!"})
 
-    logo_url = "https://i.postimg.cc/yY3dnD9S/logo.png"  
-    col1, col2 = st.columns([1, 17])
-    with col1:
-        st.image(logo_url, width=55) 
+    # logo_url = "https://i.postimg.cc/yY3dnD9S/logo.png"  
+    # col1, col2 = st.columns([1, 17])
+    # with col1:
+    #     st.image(logo_url, width=55) 
+    # with col2:
+    #     st.header("ChatPDF")
+    col1, col2, col3 = st.columns((1, 2, 1))
     with col2:
-        st.header("ChatPDF")
+        st.image(Image.open("assets\Header.png"))
+
     
     st.markdown("""##### Here are some suggestions for you:
     ▶️ Summarize the document.
@@ -117,10 +122,9 @@ def main():
     model_options = {
         
         "Gemma2-9B": "gemma2-9b-it",
+        "Llama3-8b":"llama3-8b-8192",
         "Llama3-70B": "llama3-70b-8192",
         "Llama 3.1 70B": "llama-3.1-70b-versatile",
-        # "Llama 3.2 11B Vision": "llama-3.2-11b-vision-preview",
-        # "Llama 3.2 90B ": "llama-3.2-90b-vision-preview",
         "Mixtral-8x7B": "mixtral-8x7b-32768",
 
     }
@@ -152,7 +156,8 @@ def main():
                 data=pdf_output,
                 file_name="chat_history.pdf",
                 icon=":material/download:",
-                mime="application/pdf"
+                mime="application/pdf",
+                use_container_width=True
             )
 
         if st.button("Reset Chat", icon=":material/refresh:",use_container_width=True):
