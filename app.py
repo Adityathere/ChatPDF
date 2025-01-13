@@ -88,7 +88,7 @@ def generate_pdf(chat_history):
 
 def main():
     st.set_page_config(page_title="ChatPDF", 
-                       page_icon="https://i.postimg.cc/RZzRwFCw/tab-icon.png", 
+                       page_icon="assets/favicon.png", 
                        layout="wide", 
                        initial_sidebar_state="expanded",
                        menu_items={'About': "# This is a header. This is an *extremely* cool app!"})
@@ -101,7 +101,7 @@ def main():
     #     st.header("ChatPDF")
     col1, col2, col3 = st.columns((1, 2, 1))
     with col2:
-        st.image(Image.open("assets\Header.png"))
+        st.image(Image.open("assets/Header.png"))
 
     
     st.markdown("""##### Here are some suggestions for you:
@@ -187,13 +187,13 @@ def main():
         st.chat_message(msg["type"], avatar=msg["avatar"]).write(msg["content"])
     
     if user_question := st.chat_input("Ask a Question from the PDF Files"):
-        st.chat_message("human", avatar='https://i.postimg.cc/261JMMfm/user-3.png').write(user_question)
+        st.chat_message("human", avatar='assets/human.png').write(user_question)
         answer, context = user_input(user_question, selected_model_name)
-        st.chat_message("ai", avatar='https://i.postimg.cc/fLSW0H9V/chat-16273634.png').write(answer)
+        st.chat_message("ai", avatar='assets/ai.png').write(answer)
         
         # Append conversation to history
-        st.session_state.history.append({"type": "human", "content": user_question, "avatar": 'https://i.postimg.cc/261JMMfm/user-3.png'})
-        st.session_state.history.append({"type": "ai", "content": answer, "avatar": 'https://i.postimg.cc/fLSW0H9V/chat-16273634.png'})
+        st.session_state.history.append({"type": "human", "content": user_question, "avatar": 'assets/human.png'})
+        st.session_state.history.append({"type": "ai", "content": answer, "avatar": 'assets/ai.png'})
         
         # Store the last question for regenerating
         st.session_state.last_question = user_question
@@ -202,16 +202,16 @@ def main():
     if st.session_state.last_question:
         if st.button("Regenerate"):
             # Display the last question again
-            st.chat_message("human", avatar='https://i.postimg.cc/261JMMfm/user-3.png').write(st.session_state.last_question)
+            st.chat_message("human", avatar='assets/human.png').write(st.session_state.last_question)
             
             # Generate new response for the same question
             answer, context = user_input(st.session_state.last_question, selected_model_name)
             
             # Display regenerated response
-            st.chat_message("ai", avatar='https://i.postimg.cc/fLSW0H9V/chat-16273634.png').write(answer)
+            st.chat_message("ai", avatar='assets/ai.png').write(answer)
             
             # Add regenerated response to history
-            st.session_state.history.append({"type": "ai", "content": answer, "avatar": 'https://i.postimg.cc/fLSW0H9V/chat-16273634.png'})
+            st.session_state.history.append({"type": "ai", "content": answer, "avatar": 'assets/ai.png'})
 
 
 if __name__ == "__main__":
