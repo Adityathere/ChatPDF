@@ -137,7 +137,7 @@ def main():
             "Select LLM Model", options=list(model_options.keys())
         )
         selected_model_name = model_options[selected_model]
-        st.write(f"Selected model: {selected_model_name}")
+        st.write(f"Selected model: **{selected_model_name}**")
         
         pdf_docs = st.file_uploader("Upload your PDF Files and Click on the Submit & Process Button", accept_multiple_files=True)
         if st.button("Submit & Process", icon=":material/forward:",use_container_width=True):
